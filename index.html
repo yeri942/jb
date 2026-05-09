@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Social Jukebox</title>
+        <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+        <style>
+            /* [새우님의 기존 스타일 시트 절대 보존] */
+            body {
+                font-family: "Pretendard", sans-serif;
+                background: #121212;
+                color: #e0e0e0;
+                margin: 0;
+                display: flex;
+                height: 100vh;
+                overflow: hidden;
+                user-select: none;
+            }
+            #login-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.95);
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                z-index: 2000;
+            }
+            #login-box {
+                background: #1e1e1e;
+                padding: 40px;
+                border-radius: 25px;
+                text-align: center;
+                border: 2px solid #ffcc00;
+            }
+            #app-wrapper {
+                display: flex;
+                width: 100%;
+                height: 100vh;
+                flex-direction: row;
+            }
+            .main-container {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                padding: 20px;
+                overflow-y: auto;
+                min-width: 300px;
+            }
+            #resizer {
+                width: 8px;
+                background: #222;
+                cursor: col-resize;
+                z-index: 10;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            #resizer:hover,
+            #resizer.dragging {
+                background: #ffcc00;
+            }
+            #resizer::after {
+                content: "⋮";
+                color: #888;
+                font-size: 20px;
+            }
+
+            .side-chat {
+                width: 400px;
+                min-width: 250px;
+                max-width: 520px;
+                height: 100vh;
+                background: #181818;
+                display: flex;
+                flex-direction: row;
+            }
+            .chatwrap {
+                width: 100%;
+                min-width: 250px;
+                height: 100vh;
+                background: #181818;
+                display: flex;
+                flex-direction: column;
+            }
+            #chat-messages {
+                flex: 1;
+                padding: 15px;
+                overflow-y: auto;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            /* [추가된 소셜 알림 & 목록 디자인 스타일] */
+            .msg-system {
+                align-self: center;
+                color: #888;
+                font-size: 0.85rem;
+                background: rgba(255, 255, 255, 0.05);
+                padding: 5px 15px;
+                border-radius: 20px;
+                margin: 10px 0;
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .song-item {
+                background: #2a2a2a;
+                margin-bottom: 10px;
+                padding: 15px;
+                border-radius: 12px;
+                display: flex;
+                align-items: center;
+                border-left: 5px solid #ffcc00;
+            }
+            .song-index {
+                font-size: 1.2rem;
+                font-weight: 800;
+                color: #ffcc00;
+                margin-right: 15px;
+            }
+            .song-info {
+                flex: 1;
+            }
+            .song-title {
+                font-size: 1.05rem;
+                font-weight: bold;
+                color: #fff;
+                margin-bottom: 2px;
+            }
+            .song-meta {
+                font-size: 0.8rem;
+                color: #888;
+            }
+            .requester-tag {
+                color: #ffcc00;
+                font-weight: 600;
+            }
+
+            /* [기존 반응형 미디어 쿼리 보존] */
+            @media (max-width: 1024px) {
+                #app-wrapper {
+                    flex-direction: column;
+                }
+                .side-chat {
+                    width: 100% !important;
+                    height: 350px;
+                    min-height: 150px;
+                    max-height: 100vh;
+                    border-top: 1px solid #333;
+                    position: absolute;
+                    bottom: 0;
+                    max-width: 100%;
+                }
+                #resizer {
+                    width: 100%;
+                    height: 25px;
+                    cursor: row-resize;
+                    order: -1;
+                }
+                #resizer::after {
+                    content: "⋯";
+                }
+                .side-chat {
+                    flex-direction: column;
+                }
+            }
+            @media (min-width: 1024px) {
+                .side-chat {
+                    height: 100vh !important;
+                }
+            }
+            @media (min-width: 1500px) {
+                .side-chat {
+                    max-width: calc(100% - 980px);
+                }
+            }
+            /* [기능 요소 스타일] */
+            #player-wrapper {
+                width: 100%;
+                max-width: 800px;
+                transition: 0.5s;
+                overflow: hidden;
+                margin-bottom: 20px;
+            }
+            #player-wrapper.collapsed {
+                height: 0;
+                opacity: 0;
+            }
+            #player-container {
+                width: 100%;
+                aspect-ratio: 16/9;
+                background: #000;
+                border-radius: 15px;
+                overflow: hidden;
+            }
+            .yellow-btn {
+                background: #ffcc00;
+                color: #000;
+                padding: 10px 20px;
+                font-weight: bold;
+                border-radius: 8px;
+                border: none;
+                cursor: pointer;
+            }
+            .outline-btn {
+                background: #2a2a2a;
+                color: #ffcc00;
+                border: 1px solid #ffcc00;
+                padding: 8px 20px;
+                border-radius: 20px;
+                border: none;
+                font-weight: bold;
+                cursor: pointer;
+            }
+            .msg.me {
+                background: #ffcc00;
+                color: #000;
+                align-self: flex-end;
+                padding: 10px 14px;
+                border-radius: 12px;
+            }
+            .chat-input-area {
+                padding: 15px;
+                border-top: 1px solid #333;
+                display: flex;
+                gap: 8px;
+            }
+            .chat-input-area input {
+                flex: 1;
+                padding: 12px;
+                background: #2a2a2a;
+                color: #fff;
+                border: none;
+                border-radius: 8px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="login-overlay">
+            <div id="login-box">
+                <h1 style="color: #ffcc00">🎧 Social Jukebox</h1>
+                <input
+                    type="text"
+                    id="nickname-input"
+                    placeholder="닉네임..."
+                    style="
+                        padding: 15px;
+                        border-radius: 8px;
+                        border: none;
+                        margin-bottom: 15px;
+                    "
+                />
+                <button
+                    onclick="setNickname()"
+                    class="yellow-btn"
+                    style="width: 100%"
+                >
+                    입장하기
+                </button>
+            </div>
+        </div>
+
+        <div id="app-wrapper">
+            <div class="main-container">
+                <button
+                    onclick="toggleVideo()"
+                    class="outline-btn"
+                    style="margin-bottom: 20px"
+                >
+                    🎬 뮤비 접기/펴기
+                </button>
+                <div id="player-wrapper">
+                    <div id="player-container"><div id="player"></div></div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px">
+                    <button
+                        onclick="sendAction('👏', 'clapSound')"
+                        class="outline-btn"
+                    >
+                        👏 박수
+                    </button>
+                    <button
+                        onclick="sendAction('🎉', 'fireworkSound')"
+                        class="outline-btn"
+                    >
+                        🎉 폭죽
+                    </button>
+                </div>
+                <div
+                    style="
+                        width: 90%;
+                        max-width: 800px;
+                        background: #222;
+                        padding: 20px;
+                        border-radius: 15px;
+                    "
+                >
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px">
+                        <input
+                            type="text"
+                            id="youtube-url"
+                            placeholder="유튜브 링크"
+                            style="
+                                flex: 1;
+                                padding: 10px;
+                                border-radius: 8px;
+                                border: none;
+                                background: #333;
+                                color: white;
+                            "
+                        />
+                        <input
+                            type="text"
+                            id="song-name"
+                            placeholder="제목"
+                            style="
+                                width: 150px;
+                                padding: 10px;
+                                border-radius: 8px;
+                                border: none;
+                                background: #333;
+                                color: white;
+                            "
+                        />
+                        <button onclick="addSong()" class="yellow-btn">
+                            신청
+                        </button>
+                    </div>
+                    <div id="list-items"></div>
+                </div>
+            </div>
+
+            <div class="side-chat" id="side-chat">
+                <div id="resizer"></div>
+                <div class="chatwrap">
+                    <div
+                        class="chat-header"
+                        style="
+                            padding: 15px;
+                            border-bottom: 1px solid #333;
+                            color: #ffcc00;
+                            font-weight: bold;
+                        "
+                    >
+                        LIVE CHAT
+                    </div>
+                    <div id="chat-messages"></div>
+                    <div class="chat-input-area">
+                        <input
+                            type="text"
+                            id="chat-input"
+                            placeholder="메시지..."
+                            onkeypress="if(event.keyCode==13) sendMessage()"
+                        />
+                        <button onclick="sendMessage()" class="yellow-btn">
+                            전송
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="interaction-layer"></div>
+
+        <script src="https://www.youtube.com/iframe_api"></script>
+        <script>
+            let player,
+                myNickname = "새우",
+                playlist = [];
+            const sounds = {
+                clapSound: new Audio("clap.mp3"),
+                fireworkSound: new Audio("firework.mp3"),
+            };
+
+            function onYouTubeIframeAPIReady() {
+                player = new YT.Player("player", {
+                    height: "100%",
+                    width: "100%",
+                    videoId: "ZncbtRo7RXs",
+                    events: {
+                        onStateChange: (e) => {
+                            if (e.data === 0) playNext();
+                        },
+                    },
+                });
+            }
+
+            // 입장 시 알림 추가
+            function setNickname() {
+                const n = document
+                    .getElementById("nickname-input")
+                    .value.trim();
+                if (n) {
+                    myNickname = n;
+                    document.getElementById("login-overlay").style.display =
+                        "none";
+                    addSystemMessage(`— ${myNickname}님이 입장하였습니다 —`);
+                    if (player) player.playVideo();
+                }
+            }
+
+            // 곡 추가 시 알림 & 상세 목록
+            function addSong() {
+                const u = document.getElementById("youtube-url"),
+                    t = document.getElementById("song-name");
+                const id = u.value.includes("v=")
+                    ? u.value.split("v=")[1].substring(0, 11)
+                    : u.value;
+                const title = t.value.trim() || "제목 없음";
+
+                if (id.length === 11) {
+                    playlist.push({ id, title, requester: myNickname });
+                    updateUI();
+                    addSystemMessage(
+                        `[곡 추가] ${myNickname}님이 "${title}"를 추가했습니다.`,
+                    );
+                    u.value = "";
+                    t.value = "";
+                }
+            }
+
+            function updateUI() {
+                document.getElementById("list-items").innerHTML = playlist
+                    .map(
+                        (s, i) => `
+                <div class="song-item">
+                    <div class="song-index">${i + 1}</div>
+                    <div class="song-info">
+                        <div class="song-title">${s.title}</div>
+                        <div class="song-meta">ID: ${s.id} | 신청자: <span class="requester-tag">${s.requester}</span></div>
+                    </div>
+                    <button onclick="playNow(${i})" class="yellow-btn" style="padding: 5px 10px; font-size: 0.8rem;">재생</button>
+                </div>
+            `,
+                    )
+                    .join("");
+            }
+
+            function playNow(i) {
+                const s = playlist.splice(i, 1)[0];
+                player.loadVideoById(s.id);
+                updateUI();
+            }
+
+            function playNext() {
+                if (playlist.length > 0) playNow(0);
+            }
+
+            function addSystemMessage(t) {
+                const div = document.createElement("div");
+                div.className = "msg-system";
+                div.innerText = t;
+                const msgBox = document.getElementById("chat-messages");
+                msgBox.appendChild(div);
+                msgBox.scrollTop = msgBox.scrollHeight;
+            }
+
+            // [리사이저 & 기타 기능 그대로 보존]
+            const resizer = document.getElementById("resizer"),
+                sideChat = document.getElementById("side-chat");
+            let isDragging = false;
+            resizer.addEventListener("mousedown", (e) => {
+                isDragging = true;
+                resizer.classList.add("dragging");
+            });
+            window.addEventListener("mousemove", (e) => {
+                if (!isDragging) return;
+                if (window.innerWidth > 1024)
+                    sideChat.style.width = window.innerWidth - e.clientX + "px";
+                else
+                    sideChat.style.height =
+                        window.innerHeight - e.clientY + "px";
+            });
+            window.addEventListener("mouseup", () => {
+                isDragging = false;
+                resizer.classList.remove("dragging");
+            });
+
+            function sendMessage() {
+                const i = document.getElementById("chat-input");
+                if (i.value.trim()) {
+                    const d = document.createElement("div");
+                    d.className = "msg me";
+                    d.innerText = i.value;
+                    document.getElementById("chat-messages").appendChild(d);
+                    document.getElementById("chat-messages").scrollTop = 99999;
+                    i.value = "";
+                }
+            }
+            function toggleVideo() {
+                document
+                    .getElementById("player-wrapper")
+                    .classList.toggle("collapsed");
+            }
+            function sendAction(e, s) {
+                const p = document.createElement("div");
+                p.innerText = e;
+                p.style.cssText = `position:fixed; bottom:0; left:${Math.random() * 80}vw; font-size:50px; transition:2s; pointer-events:none; z-index:2000;`;
+                document.body.appendChild(p);
+                setTimeout(() => {
+                    p.style.transform = "translateY(-100vh)";
+                    p.style.opacity = "0";
+                }, 10);
+                if (sounds[s]) {
+                    sounds[s].currentTime = 0;
+                    sounds[s].play().catch(() => {});
+                }
+            }
+        </script>
+    </body>
+</html>

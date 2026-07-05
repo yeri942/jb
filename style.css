@@ -208,11 +208,20 @@ body {
 }
 #player-container {
     width: 100%;
-    aspect-ratio: 16/9;
+    padding-bottom: 56.25%;
+    height: 0;
     background: #000;
     border-radius: 15px;
     overflow: hidden;
     position: relative;
+}
+#player {
+    position: absolute;
+    inset: 0;
+}
+#player iframe {
+    width: 100% !important;
+    height: 100% !important;
 }
 #player-placeholder {
     position: absolute;

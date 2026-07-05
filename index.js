@@ -200,18 +200,34 @@ document.getElementById('nickname-input').addEventListener('keypress', (e) => {
 
 // ── Playlist ─────────────────────────────────────────────────────────────────
 
+function extractVideoId(raw) {
+    if (!raw) return null;
+    if (/^[a-zA-Z0-9_-]{11}$/.test(raw)) return raw;
+    try {
+        const url = new URL(raw);
+        if (url.hostname === 'youtu.be') return url.pathname.slice(1, 12) || null;
+        const shorts = url.pathname.match(/\/shorts\/([a-zA-Z0-9_-]{11})/);
+        if (shorts) return shorts[1];
+        const v = url.searchParams.get('v');
+        if (v && v.length === 11) return v;
+    } catch(e) {}
+    const m = raw.match(/(?:v=|youtu\.be\/|\/shorts\/)([a-zA-Z0-9_-]{11})/);
+    return m ? m[1] : null;
+}
+
 function addSong() {
+    if (!socket) return;
     const uInput = document.getElementById('youtube-url');
     const tInput = document.getElementById('song-name');
-    const raw = uInput.value.trim();
+    const id = extractVideoId(uInput.value.trim());
 
-    let id = raw;
-    if (raw.includes('v=')) id = new URLSearchParams(raw.split('?')[1]).get('v') || raw.split('v=')[1].substring(0, 11);
-    else if (raw.includes('youtu.be/')) id = raw.split('youtu.be/')[1].split('?')[0].substring(0, 11);
+    if (!id) {
+        uInput.style.outline = '2px solid #ff4444';
+        setTimeout(() => { uInput.style.outline = ''; }, 1500);
+        return;
+    }
 
     const title = tInput.value.trim() || '제목 없음';
-    if (id.length !== 11) return;
-
     socket.emit('playlist:add', { id, title, requester: myNickname });
     uInput.value = '';
     tInput.value = '';

@@ -4,13 +4,50 @@ let myNickname = '';
 let playlist = [];
 let currentSong = null;
 let isSyncing = false;
+let audioCtx = null;
 
 const roomId = new URLSearchParams(location.search).get('id');
 
-const sounds = {
-    clapSound: new Audio('clap.mp3'),
-    fireworkSound: new Audio('firework.mp3'),
-};
+function getAudioCtx() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    return audioCtx;
+}
+
+// 첫 터치/클릭 시 오디오 잠금 해제 (iOS 필수)
+document.addEventListener('touchstart', getAudioCtx, { once: true });
+document.addEventListener('click', getAudioCtx, { once: true });
+
+function playSound(type) {
+    try {
+        const ctx = getAudioCtx();
+        if (type === 'clapSound') {
+            const size = Math.floor(ctx.sampleRate * 0.15);
+            const buf = ctx.createBuffer(1, size, ctx.sampleRate);
+            const data = buf.getChannelData(0);
+            for (let i = 0; i < size; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / size);
+            const src = ctx.createBufferSource();
+            src.buffer = buf;
+            const hp = ctx.createBiquadFilter();
+            hp.type = 'highpass';
+            hp.frequency.value = 800;
+            src.connect(hp);
+            hp.connect(ctx.destination);
+            src.start();
+        } else if (type === 'fireworkSound') {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.frequency.setValueAtTime(300, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1400, ctx.currentTime + 0.3);
+            gain.gain.setValueAtTime(0.4, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.5);
+        }
+    } catch(e) {}
+}
 
 // ── YouTube Player ──────────────────────────────────────────────────────────
 
@@ -119,10 +156,7 @@ socket.on('player:sync', ({ videoId, currentTime, isPlaying }) => {
 
 socket.on('action', ({ emoji, sound }) => {
     triggerEmoji(emoji);
-    if (sounds[sound]) {
-        sounds[sound].currentTime = 0;
-        sounds[sound].play().catch(() => {});
-    }
+    playSound(sound);
 });
 
 socket.on('user:update', (users) => updateUserCount(users));
@@ -244,10 +278,12 @@ function sendAction(emoji, sound) {
 }
 
 function triggerEmoji(emoji) {
+    const layer = document.getElementById('emoji-layer');
     const p = document.createElement('div');
     p.textContent = emoji;
-    p.style.cssText = `position:fixed;bottom:0;left:${Math.random() * 80}vw;font-size:50px;transition:2s;pointer-events:none;z-index:2000;`;
-    document.body.appendChild(p);
+    p.className = 'flying-emoji';
+    p.style.left = Math.random() * 80 + 'vw';
+    layer.appendChild(p);
     setTimeout(() => { p.style.transform = 'translateY(-100vh)'; p.style.opacity = '0'; }, 10);
     setTimeout(() => p.remove(), 2500);
 }
@@ -273,16 +309,30 @@ const resizer = document.getElementById('resizer');
 const sideChat = document.getElementById('side-chat');
 let isDragging = false;
 
-resizer.addEventListener('mousedown', () => {
+function onDragStart() {
     isDragging = true;
     resizer.classList.add('dragging');
-});
-window.addEventListener('mousemove', (e) => {
+}
+function onDragMove(clientX, clientY) {
     if (!isDragging) return;
-    if (window.innerWidth > 1024) sideChat.style.width = window.innerWidth - e.clientX + 'px';
-    else sideChat.style.height = window.innerHeight - e.clientY + 'px';
-});
-window.addEventListener('mouseup', () => {
+    if (window.innerWidth > 1024) sideChat.style.width = window.innerWidth - clientX + 'px';
+    else sideChat.style.height = window.innerHeight - clientY + 'px';
+}
+function onDragEnd() {
     isDragging = false;
     resizer.classList.remove('dragging');
-});
+}
+
+// 마우스
+resizer.addEventListener('mousedown', onDragStart);
+window.addEventListener('mousemove', (e) => onDragMove(e.clientX, e.clientY));
+window.addEventListener('mouseup', onDragEnd);
+
+// 터치
+resizer.addEventListener('touchstart', (e) => { e.preventDefault(); onDragStart(); }, { passive: false });
+window.addEventListener('touchmove', (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+    onDragMove(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+window.addEventListener('touchend', onDragEnd);

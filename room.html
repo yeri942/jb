@@ -21,14 +21,14 @@
 
         <div id="app-wrapper">
             <div class="main-container">
-                <div style="display:flex;justify-content:space-between;align-items:center;width:90%;max-width:800px;margin-bottom:10px">
-                    <div style="display:flex;gap:10px;align-items:center">
-                        <a href="/" class="outline-btn" style="text-decoration:none;font-size:0.85rem;padding:6px 14px">← 로비</a>
-                        <span id="room-name-display" style="color:#ffcc00;font-weight:bold;font-size:1.1rem"></span>
+                <div class="room-header">
+                    <div class="room-header-left">
+                        <a href="/" class="outline-btn lobby-back">← 로비</a>
+                        <span id="room-name-display" class="room-name-display"></span>
                     </div>
-                    <span id="user-count" style="color:#888;font-size:0.85rem">👤 0명 접속 중</span>
+                    <span id="user-count" class="user-count">👤 0명 접속 중</span>
                 </div>
-                <button onclick="toggleVideo()" class="outline-btn" style="margin-bottom: 20px">🎬 뮤비 접기/펴기</button>
+                <button onclick="toggleVideo()" class="outline-btn toggle-btn">🎬 뮤비 접기/펴기</button>
                 <div id="player-wrapper">
                     <div id="player-container">
                     <div id="player-placeholder">
@@ -43,11 +43,13 @@
                     <button onclick="sendAction('👏', 'clapSound')" class="outline-btn">👏 박수</button>
                     <button onclick="sendAction('🎉', 'fireworkSound')" class="outline-btn">🎉 폭죽</button>
                 </div>
-                <div style="width: 90%; max-width: 800px; background: #222; padding: 20px; border-radius: 15px">
-                    <div style="display: flex; gap: 10px; margin-bottom: 15px">
-                        <input type="text" id="youtube-url" placeholder="유튜브 링크" style="flex: 1; padding: 10px; border-radius: 8px; border: none; background: #333; color: white" />
-                        <input type="text" id="song-name" placeholder="제목" style="width: 150px; padding: 10px; border-radius: 8px; border: none; background: #333; color: white" />
-                        <button onclick="addSong()" class="yellow-btn">신청</button>
+                <div class="playlist-box">
+                    <div class="song-input-row">
+                        <input type="text" id="youtube-url" class="song-input-url" placeholder="유튜브 링크" />
+                        <div class="song-input-bottom">
+                            <input type="text" id="song-name" class="song-input-title" placeholder="제목" />
+                            <button onclick="addSong()" class="yellow-btn">신청</button>
+                        </div>
                     </div>
                     <div id="list-items"></div>
                 </div>

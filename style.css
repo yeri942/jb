@@ -41,7 +41,8 @@ body {
     align-items: center;
     padding: 20px;
     overflow-y: auto;
-    min-width: 300px;
+    min-width: 0;
+    box-sizing: border-box;
 }
 #resizer {
     width: 8px;
@@ -275,6 +276,83 @@ body {
     border-radius: 8px;
 }
 
+/* ── Room layout ────────────────────────────────────────────────────────── */
+.room-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 90%;
+    max-width: 800px;
+    margin-bottom: 10px;
+}
+.room-header-left {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    min-width: 0;
+}
+.lobby-back {
+    text-decoration: none;
+    font-size: 0.85rem;
+    padding: 6px 14px;
+    white-space: nowrap;
+}
+.room-name-display {
+    color: #ffcc00;
+    font-weight: bold;
+    font-size: 1.1rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.user-count {
+    color: #888;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    margin-left: 10px;
+}
+.toggle-btn {
+    margin-bottom: 20px;
+}
+.playlist-box {
+    width: 90%;
+    max-width: 800px;
+    background: #222;
+    padding: 20px;
+    border-radius: 15px;
+    box-sizing: border-box;
+}
+.song-input-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 15px;
+}
+.song-input-url {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: #333;
+    color: white;
+    box-sizing: border-box;
+    font-size: 1rem;
+}
+.song-input-bottom {
+    display: flex;
+    gap: 8px;
+}
+.song-input-title {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: #333;
+    color: white;
+    font-size: 1rem;
+    min-width: 0;
+}
+
 /* ── Lobby ─────────────────────────────────────────────────────────────── */
 .lobby-wrap {
     max-width: 800px;
@@ -393,4 +471,57 @@ body {
     text-align: center;
     display: flex;
     flex-direction: column;
+}
+
+/* ── 모바일 전용 (600px 이하) ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+    /* Room */
+    .main-container {
+        padding: 12px;
+        padding-bottom: 370px;
+    }
+    .room-header {
+        width: 100%;
+    }
+    .playlist-box {
+        width: 100%;
+        padding: 12px;
+    }
+    .toggle-btn {
+        width: 100%;
+        margin-bottom: 12px;
+    }
+    #login-box {
+        padding: 28px 20px;
+        margin: 0 16px;
+        width: auto;
+    }
+
+    /* Lobby */
+    .lobby-wrap {
+        padding: 24px 16px;
+    }
+    .lobby-title {
+        font-size: 1.8rem;
+    }
+    .lobby-header {
+        margin-bottom: 24px;
+    }
+    .lobby-create-box {
+        flex-direction: column;
+    }
+    .room-card {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .room-card-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    /* Modal */
+    .modal-box {
+        width: calc(100vw - 40px);
+        padding: 28px 20px;
+    }
 }

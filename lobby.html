@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>Social Jukebox - 로비</title>
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body style="display:block;height:auto;overflow-y:auto">
+    <div class="lobby-wrap">
+        <div class="lobby-header">
+            <h1 class="lobby-title">🎧 Social Jukebox</h1>
+            <p class="lobby-sub">방을 만들거나 입장하여 함께 음악을 들어보세요</p>
+        </div>
+
+        <div class="lobby-nickname-bar">
+            <span style="color:#888;font-size:0.9rem">내 닉네임:</span>
+            <strong id="display-nickname" style="color:#ffcc00;margin-left:8px">—</strong>
+            <button onclick="changeNickname()" class="outline-btn" style="margin-left:12px;padding:4px 12px;font-size:0.8rem">변경</button>
+        </div>
+
+        <div class="lobby-create-box">
+            <input type="text" id="room-name-input" placeholder="방 이름을 입력하세요..." class="lobby-input" maxlength="30" />
+            <button onclick="createRoom()" class="yellow-btn">+ 방 만들기</button>
+        </div>
+
+        <div class="lobby-section-title">현재 열린 방 <span id="room-count" style="color:#888;font-size:0.9rem">(0개)</span></div>
+
+        <div id="room-list" class="room-list">
+            <div class="room-empty">아직 열린 방이 없어요. 첫 번째 방을 만들어보세요!</div>
+        </div>
+    </div>
+
+    <!-- 닉네임 입력 모달 -->
+    <div id="nickname-modal" class="modal-backdrop" style="display:none">
+        <div class="modal-box">
+            <h2 style="color:#ffcc00;margin-bottom:20px">🎵 닉네임 설정</h2>
+            <input type="text" id="nickname-modal-input" placeholder="닉네임..." class="lobby-input" maxlength="20" style="margin-bottom:15px" />
+            <button onclick="saveNickname()" class="yellow-btn" style="width:100%">확인</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="lobby.js"></script>
+</body>
+</html>

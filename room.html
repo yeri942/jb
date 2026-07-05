@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ko">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Social Jukebox</title>
+        <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
+        <link rel="stylesheet" href="style.css" />
+    </head>
+    <body>
+        <div id="login-overlay">
+            <div id="login-box">
+                <h1 style="color: #ffcc00">🎧 Social Jukebox</h1>
+                <p id="login-room-name" style="color:#888;margin-bottom:15px"></p>
+                <input type="text" id="nickname-input" placeholder="닉네임..." style="padding: 15px; border-radius: 8px; border: none; margin-bottom: 15px" />
+                <button onclick="setNickname()" class="yellow-btn" style="width: 100%">입장하기</button>
+                <br/><br/>
+                <a href="/" style="color:#666;font-size:0.85rem;text-decoration:none">← 로비로 돌아가기</a>
+            </div>
+        </div>
+
+        <div id="app-wrapper">
+            <div class="main-container">
+                <div style="display:flex;justify-content:space-between;align-items:center;width:90%;max-width:800px;margin-bottom:10px">
+                    <div style="display:flex;gap:10px;align-items:center">
+                        <a href="/" class="outline-btn" style="text-decoration:none;font-size:0.85rem;padding:6px 14px">← 로비</a>
+                        <span id="room-name-display" style="color:#ffcc00;font-weight:bold;font-size:1.1rem"></span>
+                    </div>
+                    <span id="user-count" style="color:#888;font-size:0.85rem">👤 0명 접속 중</span>
+                </div>
+                <button onclick="toggleVideo()" class="outline-btn" style="margin-bottom: 20px">🎬 뮤비 접기/펴기</button>
+                <div id="player-wrapper">
+                    <div id="player-container"><div id="player"></div></div>
+                </div>
+                <div style="display: flex; gap: 10px; margin-bottom: 20px">
+                    <button onclick="sendAction('👏', 'clapSound')" class="outline-btn">👏 박수</button>
+                    <button onclick="sendAction('🎉', 'fireworkSound')" class="outline-btn">🎉 폭죽</button>
+                </div>
+                <div style="width: 90%; max-width: 800px; background: #222; padding: 20px; border-radius: 15px">
+                    <div style="display: flex; gap: 10px; margin-bottom: 15px">
+                        <input type="text" id="youtube-url" placeholder="유튜브 링크" style="flex: 1; padding: 10px; border-radius: 8px; border: none; background: #333; color: white" />
+                        <input type="text" id="song-name" placeholder="제목" style="width: 150px; padding: 10px; border-radius: 8px; border: none; background: #333; color: white" />
+                        <button onclick="addSong()" class="yellow-btn">신청</button>
+                    </div>
+                    <div id="list-items"></div>
+                </div>
+            </div>
+
+            <div class="side-chat" id="side-chat">
+                <div id="resizer"></div>
+                <div class="chatwrap">
+                    <div class="chat-header" style="padding: 15px; border-bottom: 1px solid #333; color: #ffcc00; font-weight: bold">LIVE CHAT</div>
+                    <div id="chat-messages"></div>
+                    <div class="chat-input-area">
+                        <input type="text" id="chat-input" placeholder="메시지..." onkeypress="if(event.keyCode==13) sendMessage()" />
+                        <button onclick="sendMessage()" class="yellow-btn">전송</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script src="/socket.io/socket.io.js"></script>
+        <script src="https://www.youtube.com/iframe_api"></script>
+        <script src="index.js"></script>
+    </body>
+</html>

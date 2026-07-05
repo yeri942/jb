@@ -2,6 +2,7 @@
 <html lang="ko">
     <head>
         <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Social Jukebox</title>
         <link rel="icon" href="data:;base64,iVBORw0KGgo=" />
         <link rel="stylesheet" href="style.css" />
@@ -29,7 +30,14 @@
                 </div>
                 <button onclick="toggleVideo()" class="outline-btn" style="margin-bottom: 20px">🎬 뮤비 접기/펴기</button>
                 <div id="player-wrapper">
-                    <div id="player-container"><div id="player"></div></div>
+                    <div id="player-container">
+                    <div id="player-placeholder">
+                        <span style="font-size:3rem">🎵</span>
+                        <span>재생 중인 영상이 없어요</span>
+                        <span style="font-size:0.85rem;color:#444">아래에서 유튜브 링크를 추가해보세요!</span>
+                    </div>
+                    <div id="player"></div>
+                </div>
                 </div>
                 <div style="display: flex; gap: 10px; margin-bottom: 20px">
                     <button onclick="sendAction('👏', 'clapSound')" class="outline-btn">👏 박수</button>

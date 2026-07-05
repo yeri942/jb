@@ -2,6 +2,7 @@ let socket;
 let player;
 let myNickname = '';
 let playlist = [];
+let currentSong = null;
 let isSyncing = false;
 
 const roomId = new URLSearchParams(location.search).get('id');
@@ -62,8 +63,9 @@ function syncPlayer(videoId, currentTime, isPlaying) {
 
 function setupSocketListeners() {
 
-socket.on('init', ({ roomName, currentVideoId, currentTime, isPlaying, playlist: p, users }) => {
+socket.on('init', ({ roomName, currentVideoId, currentTime, isPlaying, currentSong: cs, playlist: p, users }) => {
     playlist = p;
+    currentSong = cs || null;
     updateUI();
     updateUserCount(users);
 
@@ -103,8 +105,10 @@ socket.on('playlist:update', (p) => {
     updateUI();
 });
 
-socket.on('player:load', ({ videoId, startSeconds }) => {
+socket.on('player:load', ({ videoId, startSeconds, song }) => {
     isSyncing = true;
+    currentSong = song || null;
+    updateUI();
     player.loadVideoById({ videoId, startSeconds });
     setTimeout(() => { isSyncing = false; }, 1200);
 });
@@ -184,17 +188,30 @@ function playNow(i) {
 }
 
 function updateUI() {
-    document.getElementById('list-items').innerHTML = playlist
-        .map((s, i) => `
-            <div class="song-item">
-                <div class="song-index">${i + 1}</div>
-                <div class="song-info">
-                    <div class="song-title">${escapeHtml(s.title)}</div>
-                    <div class="song-meta">신청자: <span class="requester-tag">${escapeHtml(s.requester)}</span></div>
-                </div>
-                <button onclick="playNow(${i})" class="yellow-btn" style="padding:5px 10px;font-size:0.8rem">재생</button>
-            </div>`)
-        .join('');
+    const placeholder = document.getElementById('player-placeholder');
+    if (placeholder) placeholder.classList.toggle('hidden', currentSong !== null);
+
+    const nowPlaying = currentSong ? `
+        <div class="song-item now-playing">
+            <div class="song-index">▶</div>
+            <div class="song-info">
+                <div class="song-title">${escapeHtml(currentSong.title)}</div>
+                <div class="song-meta">신청자: <span class="requester-tag">${escapeHtml(currentSong.requester)}</span></div>
+            </div>
+            <span class="now-playing-badge">🎵 재생 중</span>
+        </div>` : '';
+
+    const queue = playlist.map((s, i) => `
+        <div class="song-item">
+            <div class="song-index">${i + 1}</div>
+            <div class="song-info">
+                <div class="song-title">${escapeHtml(s.title)}</div>
+                <div class="song-meta">신청자: <span class="requester-tag">${escapeHtml(s.requester)}</span></div>
+            </div>
+            <button onclick="playNow(${i})" class="yellow-btn" style="padding:5px 10px;font-size:0.8rem">재생</button>
+        </div>`).join('');
+
+    document.getElementById('list-items').innerHTML = nowPlaying + queue;
 }
 
 // ── Chat ─────────────────────────────────────────────────────────────────────

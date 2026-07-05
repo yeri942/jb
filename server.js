@@ -52,6 +52,7 @@ io.on('connection', (socket) => {
             currentTime: 0,
             isPlaying: false,
             lastSyncAt: Date.now(),
+            currentSong: null,
             playlist: [],
             users: {},
         });
@@ -76,6 +77,7 @@ io.on('connection', (socket) => {
             currentVideoId: room.currentVideoId,
             currentTime: getEstimatedTime(room),
             isPlaying: room.isPlaying,
+            currentSong: room.currentSong,
             playlist: room.playlist,
             users: Object.values(room.users),
         });
@@ -108,8 +110,9 @@ io.on('connection', (socket) => {
         room.currentTime = 0;
         room.isPlaying = true;
         room.lastSyncAt = Date.now();
+        room.currentSong = song;
         io.to(room.id).emit('playlist:update', room.playlist);
-        io.to(room.id).emit('player:load', { videoId: song.id, startSeconds: 0 });
+        io.to(room.id).emit('player:load', { videoId: song.id, startSeconds: 0, song });
     });
 
     socket.on('player:play', ({ videoId, currentTime }) => {
@@ -140,10 +143,12 @@ io.on('connection', (socket) => {
             room.currentTime = 0;
             room.isPlaying = true;
             room.lastSyncAt = Date.now();
+            room.currentSong = next;
             io.to(room.id).emit('playlist:update', room.playlist);
-            io.to(room.id).emit('player:load', { videoId: next.id, startSeconds: 0 });
+            io.to(room.id).emit('player:load', { videoId: next.id, startSeconds: 0, song: next });
         } else {
             room.isPlaying = false;
+            room.currentSong = null;
         }
     });
 

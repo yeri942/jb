@@ -337,6 +337,13 @@ function onDragMove(clientX, clientY) {
 function onDragEnd() {
     isDragging = false;
     resizer.classList.remove('dragging');
+    syncMainPadding();
+}
+
+function syncMainPadding() {
+    if (window.innerWidth > 1024) return;
+    const mc = document.querySelector('.main-container');
+    if (mc) mc.style.paddingBottom = (sideChat.offsetHeight + 10) + 'px';
 }
 
 // 마우스
@@ -352,3 +359,8 @@ window.addEventListener('touchmove', (e) => {
     onDragMove(e.touches[0].clientX, e.touches[0].clientY);
 }, { passive: false });
 window.addEventListener('touchend', onDragEnd);
+
+// 창 크기 바뀔 때도 패딩 동기화
+window.addEventListener('resize', syncMainPadding);
+// 초기 패딩 세팅 (렌더 후)
+requestAnimationFrame(syncMainPadding);
